@@ -8,9 +8,9 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Day1 {
+public class Part2 {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Day1.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Part2.class);
 
     private static final Map<String, Integer> numbers = getNumbers();
 
