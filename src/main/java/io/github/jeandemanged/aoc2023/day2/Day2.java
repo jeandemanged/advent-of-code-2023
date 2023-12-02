@@ -5,9 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Day2 {
 
@@ -64,10 +62,25 @@ public class Day2 {
         var possibleGames = games.stream().filter(game -> {
             var filter =
                     game.reveals().stream().flatMap(r -> r.cubes().stream()).noneMatch(reveal -> reveal.num() > maxPerColor.get(reveal.color()));
-            LOGGER.info("filtering {} {}", game.id(), filter);
+            LOGGER.debug("filtering {} {}", game.id(), filter);
             return filter;
         });
         int sum = possibleGames.mapToInt(Game::id).sum();
         LOGGER.info("Day2 Part 1: {}", sum);
+
+        int sumPart2 = 0;
+        for (Game game : games) {
+            Map<Color, Integer> minPerColor = new EnumMap<>(Color.class);
+            for (Color color : Color.values()) {
+                var min = game.reveals().stream()
+                        .flatMap(r -> r.cubes().stream().filter(c -> color == c.color()))
+                        .max(Comparator.comparingInt(Cube::num)).orElse(new Cube(0, color)).num();
+                minPerColor.put(color, min);
+            }
+            var power = minPerColor.values().stream().reduce(1, (pow, element) -> pow * element);
+            LOGGER.debug("Game {} {} {}", game.id(), minPerColor, power);
+            sumPart2 += power;
+        }
+        LOGGER.info("Day2 Part 2: {}", sumPart2);
     }
 }
