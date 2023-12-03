@@ -20,6 +20,23 @@ public class Day3 {
     }
 
     record Symbol(int x, int y, Character symbol) {
+        boolean isStar() {
+            return '*' == symbol;
+        }
+
+        private List<Number> adjacentNumbers(EngineSchematic schematic) {
+            return schematic.numbers().stream().filter(n -> n.isAdjacentToSymbol(this)).toList();
+        }
+
+        int gearRatio(EngineSchematic schematic) {
+            var adjacent = adjacentNumbers(schematic);
+            // funny enough, forgetting isStar test below produces same result for example small input data and my own data
+            if (!isStar() || adjacent.size() != 2) {
+                return 0;
+            } else {
+                return adjacent.get(0).value() * adjacent.get(1).value();
+            }
+        }
     }
 
     record EngineSchematic(List<Number> numbers, List<Symbol> symbols) {
@@ -39,6 +56,8 @@ public class Day3 {
         }
         int sum = filteredNumbers.stream().mapToInt(Number::value).sum();
         LOGGER.info("Day3 Part 1: {}", sum);
+        int gearRatioTotal = schematic.symbols().stream().mapToInt(s -> s.gearRatio(schematic)).sum();
+        LOGGER.info("Day3 Part 2: {}", gearRatioTotal);
     }
 
     private static EngineSchematic buildEngineSchematic(List<String> lines) {
