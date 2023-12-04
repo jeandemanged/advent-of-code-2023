@@ -71,9 +71,20 @@ public class Day4 {
     public static void main(String[] args) {
         var cardPile = CardPile.build(FileUtils.readAllLines(Paths.get("data", "day4.txt")));
 
-        var score = cardPile.cards().stream().mapToInt(Card::score).sum();
+        var part1score = cardPile.cards().stream().mapToInt(Card::score).sum();
+        LOGGER.info("Day4 Part 1: {}", part1score);
 
-        LOGGER.info("Day4 Part 1: {}", score);
+        List<Integer> numCards = new ArrayList<>(Collections.nCopies(cardPile.cards().size(), 1));
+        List<Card> cards = cardPile.cards();
+        for (int i = 0; i < cards.size(); i++) {
+            Card card = cards.get(i);
+            int numWinning = card.numWinning();
+            int numThisCard = numCards.get(i);
+            for (int j = i + 1; j < Math.min(i + 1 + numWinning, cards.size()); j++) {
+                numCards.set(j, numCards.get(j) + numThisCard);
+            }
+        }
+        var tot = numCards.stream().mapToInt(n -> n).sum();
+        LOGGER.info("Day4 Part 2: {}", tot);
     }
-
 }
