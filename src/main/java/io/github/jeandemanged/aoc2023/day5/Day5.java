@@ -49,6 +49,7 @@ public class Day5 {
         static Almanac build(List<String> lines) {
             lines.add("");
             List<Long> seeds = Arrays.stream(lines.get(0).replace("seeds: ", "").split(" ")).map(Long::parseLong).toList();
+            seeds = new ArrayList<>(seeds);
             List<SourceDestMap> sourceDestMaps = new ArrayList<>();
             Category sourceCategory;
             Category destinationCategory;
@@ -78,10 +79,34 @@ public class Day5 {
             }
             return new Almanac(seeds, sourceDestMaps);
         }
+
+        /* works but doesnt fit in memory for real puzzle
+        void patchSeedsForPartTwo() {
+            if ((this.seeds().size() % 2) != 0) {
+                throw new IllegalStateException("Uneven");
+            }
+            List<Long> original = new ArrayList<>(this.seeds());
+            this.seeds().clear();
+            for (int i = 0; i < original.size(); i = i + 2) {
+                long rangeStart = original.get(i);
+                long rangeLength = original.get(i + 1);
+                LOGGER.info("{}, {}", rangeStart, rangeLength);
+                LongStream.range(rangeStart, rangeStart + rangeLength).forEach(this.seeds()::add);
+            }
+        }
+        */
     }
 
     public static void main(String[] args) {
         var almanac = Almanac.build(FileUtils.readAllLines(Paths.get("data", "day5.txt")));
+        long lowest = getLowest(almanac);
+        LOGGER.info("Part 1: {}", lowest);
+        long lowest2 = getLowest2(almanac);
+        LOGGER.info("Part 2: {}", lowest2);
+
+    }
+
+    private static long getLowest(Almanac almanac) {
         long lowest = Long.MAX_VALUE;
         for (long seed : almanac.seeds()) {
             LOGGER.info("-- seed {}", seed);
@@ -95,7 +120,27 @@ public class Day5 {
             LOGGER.info("lowest = {}", lowest);
             LOGGER.info("");
         }
-        LOGGER.info("Part 1: {}", lowest);
+        return lowest;
+    }
 
+    // works but completely dumb and awfully slow
+    private static long getLowest2(Almanac almanac) {
+        if ((almanac.seeds().size() % 2) != 0) {
+            throw new IllegalStateException("Uneven");
+        }
+        long lowest = Long.MAX_VALUE;
+        for (int i = 0; i < almanac.seeds().size(); i = i + 2) {
+            LOGGER.info("-- i {}", i);
+            long rangeStart = almanac.seeds().get(i);
+            long rangeLength = almanac.seeds().get(i + 1);
+            for (long j = rangeStart; j < rangeStart + rangeLength; j++) {
+                long currentSource = j;
+                for (SourceDestMap sourceDestMap : almanac.sourceDestMaps()) {
+                    currentSource = sourceDestMap.getMappingForSource(currentSource);
+                }
+                lowest = Math.min(lowest, currentSource);
+            }
+        }
+        return lowest;
     }
 }
