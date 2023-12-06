@@ -58,6 +58,17 @@ public class Day6 {
         LOGGER.info("Part 1: countWins={}", countWins);
         LOGGER.info("Part 1: {}", part1);
 
+        long time = 59688274L;
+        long rec = 543102016641022L;
+
+        long countWin = 0;
+        for (long t = 1; t < time; t++) {
+            long distanceDone = (time - t) * t;
+            if (distanceDone > rec) {
+                countWin++;
+            }
+        }
+        LOGGER.info("Part 2: {}", countWin);
     }
 
 }
