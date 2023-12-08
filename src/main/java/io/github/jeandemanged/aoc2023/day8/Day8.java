@@ -1,6 +1,7 @@
 package io.github.jeandemanged.aoc2023.day8;
 
 import io.github.jeandemanged.aoc2023.utils.FileUtils;
+import io.github.jeandemanged.aoc2023.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +51,43 @@ public class Day8 {
             return currentSteps;
         }
 
+        // doesn't make it
+        long getSteps2() {
+            var startingNodes = map().keySet().stream().filter(s -> s.endsWith("A")).toList();
+            List<String> currentNodes = new ArrayList<>(startingNodes);
+            long currentSteps = 0;
+            int instructionPos = -1;
+            while (!currentNodes.stream().allMatch(n -> n.endsWith("Z"))) {
+                instructionPos = (instructionPos + 1) % instructions().size();
+                LeftRight currentInstruction = instructions().get(instructionPos);
+                for (int i = 0; i < currentNodes.size(); i++) {
+                    String node = currentNodes.get(i);
+                    currentNodes.set(i, map.get(node).get(currentInstruction.getValue()));
+                }
+                currentSteps++;
+            }
+            return currentSteps;
+        }
+
+        long getSteps3() {
+            var startingNodes = map().keySet().stream().filter(s -> s.endsWith("A")).toList();
+            Map<String, Long> steps = new HashMap<>();
+            startingNodes.forEach(sn -> {
+                var currentNode = sn;
+                long currentSteps = 0;
+                int instructionPos = -1;
+                while (!currentNode.endsWith("Z")) {
+                    instructionPos = (instructionPos + 1) % instructions().size();
+                    LeftRight currentInstruction = instructions().get(instructionPos);
+                    currentNode = map.get(currentNode).get(currentInstruction.getValue());
+                    currentSteps++;
+                }
+                steps.put(sn, currentSteps);
+            });
+            LOGGER.info("{}", steps);
+            return steps.values().stream().reduce(1L, Utils::lcm);
+        }
+
         static Puzzle build(List<String> lines) {
             var puzzle = new Puzzle();
             puzzle.instructions().addAll(lines.get(0).chars().mapToObj(c -> LeftRight.fromString(String.valueOf((char) c))).toList());
@@ -67,6 +105,7 @@ public class Day8 {
     public static void main(String[] args) {
         var puzzle = Puzzle.build(FileUtils.readAllLines(Paths.get("data", "day8.txt")));
         LOGGER.info("Part 1: {}", puzzle.getSteps());
+        LOGGER.info("Part 2: {}", puzzle.getSteps3());
     }
 
 }
