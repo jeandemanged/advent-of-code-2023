@@ -9,9 +9,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class Day7 {
+public class Day7Part2 {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Day7.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Day7Part2.class);
 
     interface ValuedEnum {
         int getValue();
@@ -21,7 +21,7 @@ public class Day7 {
         CA('A', 14),
         CK('K', 13),
         CQ('Q', 12),
-        CJ('J', 11),
+        CJ('J', 0),
         CT('T', 10),
         C9('9', 9),
         C8('8', 8),
@@ -117,28 +117,70 @@ public class Day7 {
                 count.put(card, count.get(card) + 1);
             });
             var nonZeroes =
-                    count.entrySet().stream().filter(entry -> entry.getValue() != 0).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                    count.entrySet().stream()
+                            .filter(entry -> entry.getValue() != 0)
+                            .filter(entry -> entry.getKey() != Card.CJ)
+                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
             var nonZerosCounts = nonZeroes.values().stream().sorted(Comparator.reverseOrder()).toList();
-            if (nonZeroes.size() == 5) {
-                return HandType.HIGH_CARD;
-            } else if (nonZeroes.size() == 4) {
-                return HandType.ONE_PAIR;
-            } else if (nonZeroes.size() == 3) {
-                if (nonZerosCounts.get(0) == 2 && nonZerosCounts.get(1) == 2) {
-                    return HandType.TWO_PAIR;
-                } else if (nonZerosCounts.get(0) == 3) {
-                    return HandType.THREE_OF_A_KIND;
-                }
-            } else if (nonZeroes.size() == 2) {
-                // four of a kind or full-house
-                if (nonZerosCounts.get(0) == 4) {
-                    return HandType.FOUR_OF_A_KIND;
-                } else if (nonZerosCounts.get(0) == 3) {
-                    return HandType.FULL_HOUSE;
-                }
-            } else if (nonZeroes.size() == 1) {
+            var numJokers = cards().stream().filter(c -> c == Card.CJ).count();
+            if (numJokers == 5) {
                 return HandType.FIVE_OF_A_KIND;
+            } else if (numJokers == 0) { // shame on me for doing this
+                if (nonZeroes.size() == 5) {
+                    return HandType.HIGH_CARD;
+                } else if (nonZeroes.size() == 4) {
+                    return HandType.ONE_PAIR;
+                } else if (nonZeroes.size() == 3) {
+                    if (nonZerosCounts.get(0) == 2 && nonZerosCounts.get(1) == 2) {
+                        return HandType.TWO_PAIR;
+                    } else if (nonZerosCounts.get(0) == 3) {
+                        return HandType.THREE_OF_A_KIND;
+                    }
+                } else if (nonZeroes.size() == 2) {
+                    // four of a kind or full-house
+                    if (nonZerosCounts.get(0) == 4) {
+                        return HandType.FOUR_OF_A_KIND;
+                    } else if (nonZerosCounts.get(0) == 3) {
+                        return HandType.FULL_HOUSE;
+                    }
+                } else if (nonZeroes.size() == 1) {
+                    return HandType.FIVE_OF_A_KIND;
+                }
+            } else {
+                if (nonZeroes.size() == 1) {
+                    return HandType.FIVE_OF_A_KIND;
+                }
+                if (nonZeroes.size() == 2) {
+                    if (nonZerosCounts.get(0) == 3) {
+                        // 3 same, one another, one J
+                        return HandType.FOUR_OF_A_KIND;
+                    } else if (nonZerosCounts.get(0) == 2 && nonZerosCounts.get(1) == 2) {
+                        // 2 same, 2 another, one J
+                        return HandType.FULL_HOUSE;
+                    } else if (nonZerosCounts.get(0) == 2 && nonZerosCounts.get(1) == 1) {
+                        // 2 same, 1 another, 2 J
+                        return HandType.FOUR_OF_A_KIND;
+                    } else if (nonZerosCounts.get(0) == 1) {
+                        // 1 same, 1 another, 3 J
+                        return HandType.FOUR_OF_A_KIND;
+                    }
+                }
+                if (nonZeroes.size() == 3) {
+                    if (nonZerosCounts.get(0) == 2 && nonZerosCounts.get(1) == 1 && nonZerosCounts.get(2) == 1) {
+                        // 2, 1, 1, J
+                        return HandType.THREE_OF_A_KIND;
+                    }
+                    if (nonZerosCounts.get(0) == 1) {
+                        return HandType.THREE_OF_A_KIND;
+                    }
+                }
+                if (nonZeroes.size() == 4) {
+                    // "best I can do is one pair"
+                    return HandType.ONE_PAIR;
+                }
+
             }
+
             throw new IllegalStateException("oh noes: " + this.cards());
         }
 
@@ -176,7 +218,8 @@ public class Day7 {
 
     public static void main(String[] args) {
         var puzzle = Puzzle.build(FileUtils.readAllLines(Paths.get("data", "day7.txt")));
-        LOGGER.info("Part 1: {}", puzzle.getWinnings());
+        LOGGER.info("Part 2: {}", puzzle);
+        LOGGER.info("Part 2: {}", puzzle.getWinnings());
     }
 
 }
