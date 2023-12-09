@@ -14,7 +14,8 @@ public class Day9 {
     private static final Logger LOGGER = LoggerFactory.getLogger(Day9.class);
 
     record History(List<Long> history) {
-        long predictNext() {
+
+        private List<List<Long>> buildSequencesTillZeroes() {
             List<List<Long>> sequences = new ArrayList<>();
             // down
             List<Long> current = new ArrayList<>(this.history());
@@ -23,6 +24,11 @@ public class Day9 {
                 current = toNext(current);
             }
             sequences.add(current);
+            return sequences;
+        }
+
+        long predictNext() {
+            List<List<Long>> sequences = buildSequencesTillZeroes();
             // up
             for (int i = sequences.size() - 1; i >= 0; i--) {
                 List<Long> seq = sequences.get(i);
@@ -36,9 +42,25 @@ public class Day9 {
                 }
             }
             List<Long> first = sequences.get(0);
-            Long predicted = first.get(first.size() - 1);
-            LOGGER.info("Predicted {} (depth={})", predicted, sequences.size());
-            return predicted;
+            return first.get(first.size() - 1);
+        }
+
+        long predictBefore() {
+            List<List<Long>> sequences = buildSequencesTillZeroes();
+            // up
+            for (int i = sequences.size() - 1; i >= 0; i--) {
+                List<Long> seq = sequences.get(i);
+                if (i == sequences.size() - 1) {
+                    seq.add(0, 0L);
+                } else {
+                    long firstVal = seq.get(0);
+                    List<Long> dnSeq = sequences.get(i + 1);
+                    long firstDiff = dnSeq.get(0);
+                    seq.add(0, firstVal - firstDiff);
+                }
+            }
+            List<Long> first = sequences.get(0);
+            return first.get(0);
         }
     }
 
@@ -62,12 +84,13 @@ public class Day9 {
         return list.stream().allMatch(l -> 0L == l);
     }
 
-
     public static void main(String[] args) {
         var puzzle = Puzzle.build(FileUtils.readAllLines(Paths.get("data", "day9.txt")));
 
         long part1 = puzzle.historyList().stream().mapToLong(History::predictNext).sum();
         LOGGER.info("Part 1: {}", part1);
+        long part2 = puzzle.historyList().stream().mapToLong(History::predictBefore).sum();
+        LOGGER.info("Part 2: {}", part2);
     }
 
 }
