@@ -84,9 +84,6 @@ public class Day10 {
         }
     }
 
-    record Xy(int x, int y) {
-    }
-
     record Puzzle(int xSize, int ySize, Pipe[][] pipes, Pipe startingPosition) {
         static Puzzle build(List<String> lines) {
             int xSize = lines.get(0).length() + 2;
@@ -117,7 +114,7 @@ public class Day10 {
             Set<Pipe> donePipes = new HashSet<>();
             pipeList.add(this.startingPosition());
             boolean done = false;
-            int currentStep = 0;
+            int currentStep = 1;
             while (!done) {
                 List<Pipe> nextPipeList = new ArrayList<>();
                 for (Pipe pipe : pipeList) {
@@ -136,18 +133,52 @@ public class Day10 {
             }
             for (int y = 0; y < ySize(); y++) {
                 for (int x = 0; x < xSize(); x++) {
-                    System.out.print(step[x][y]);
+                    System.out.print(step[x][y] > 0 ? pipes()[x][y].pipeType().getType() : ".");
                 }
                 System.out.println();
             }
-            return currentStep - 1;
+
+            int count = 0;
+            for (int y = 0; y < ySize(); y++) {
+                for (int x = 0; x < xSize(); x++) {
+                    if (step[x][y] > 0) {
+                        continue;
+                    }
+                    Pipe pipe = pipes()[x][y];
+                    if (isInsideMainLoop(step, pipe)) {
+                        count++;
+                    }
+                }
+            }
+            LOGGER.info("Part 1: {}", currentStep - 2);
+            LOGGER.info("Part 2: {}", count);
+
+            return currentStep - 2; // bc we started at 1 and added 1
+        }
+
+        boolean isInsideMainLoop(int[][] loop, Pipe pipe) {
+            int pipeX = pipe.x();
+            int pipeY = pipe.y();
+            if (loop[pipeX][pipeY] > 0) {
+                // is the main loop itself
+                return false;
+            }
+            int crossingsXwest = 0;
+            for (int x = 0; x < pipeX; x++) {
+                var type = pipes()[x][pipeY].pipeType();
+                // we "look" a bit "below" when counting crossings from left, blocked by "|", by "F", and by "7". we are not blocked by "J" and "L"
+                // in my puzzle, the starting point is actually a "|", so I include it as blocking, but this code won't work for all puzzles...
+                if (loop[x][pipeY] > 0 && (type == PipeType.S || type == PipeType.NS || type == PipeType.SE || type == PipeType.SW)) {
+                    crossingsXwest++;
+                }
+            }
+            return crossingsXwest % 2 != 0;
         }
     }
 
     public static void main(String[] args) {
         var puzzle = Puzzle.build(FileUtils.readAllLines(Paths.get("data", "day10.txt")));
-        LOGGER.info("Part 1: {}", puzzle);
-        LOGGER.info("Part 1: {}", puzzle.findSteps());
+        puzzle.findSteps();
     }
 
 }
